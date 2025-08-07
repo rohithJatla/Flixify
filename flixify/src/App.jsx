@@ -1,5 +1,9 @@
 import {useState, useEffect} from 'react'
+import {useDebounce} from 'react-use';
 import Search from './components/Search.jsx'
+import Spinner from './components/Spinner.jsx';
+import MovieCard from "./components/MovieCard.jsx";
+import {getTrendingMovies, updateSearchCount} from "./appwrite.js";
 
 const API_BASE_URL = 'https://api.themoviedb.org/3'
 
@@ -18,31 +22,49 @@ const App = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [movieList, setMovieList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+    const [trendingMovies, setTrendingMovies] = useState([]);
 
-    const fetchMovies = async () => {
+    const loadTrendingMovies = async() =>{
+
+        try{
+            const movies = await getTrendingMovies();
+            setTrendingMovies(movies);
+
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+
+
+    const fetchMovies = async (query = '') => {
         setLoading(true);
         setErrorMessage(''); // Clear previous errors
         try{
-            const endPoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+            const endPoint =
+                query ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+                :`${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
             const response =  await fetch(endPoint, API_OPTION)
             if(!response.ok){
                 throw new Error("Failed to fetch movies from API");
+
             }
             const data = await response.json()
 
-
-            if(data.results && data.results.length > 0){
-                setMovieList(data.results);
-                setErrorMessage('');
-            } else {
-                setErrorMessage('No movies found');
+            if(data.Response === 'False'){
+                setErrorMessage(data.Error || 'Failed to fetch movies from API');
                 setMovieList([]);
+                return;
             }
 
-            console.log(data)
+            setMovieList(data.results || []);
+
+            if(query && data.results.length > 0){
+                await updateSearchCount(query,data.results[0]);
+            }
         }
         catch(err){
-            console.log(err);
             setErrorMessage("Error fetching movies: " + err.message)
             setMovieList([]);
         }
@@ -51,9 +73,18 @@ const App = () => {
         }
     }
 
+    useDebounce(() => {
+        setDebouncedSearchTerm(searchTerm);
+    },800, [searchTerm]);
+
+
     useEffect(() => {
-        fetchMovies()
-    },  [])
+        fetchMovies(debouncedSearchTerm);
+    },  [debouncedSearchTerm]);
+
+    useEffect(() => {
+        loadTrendingMovies();
+    },[])
 
     return (
         <main className="App">
@@ -68,16 +99,33 @@ const App = () => {
                 </header>
 
                 <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
+                {trendingMovies.length > 0 && (
+                    <section className="trending scroll-auto hide-scrollbar" >
+                        <h2> Trending Movies</h2>
+                        <ul className="trending__list">
+                            {trendingMovies.map((movie,index)=>(
+                                <li key={movie.$id}>
+                                    <p>
+                                        {index +1}
+                                    </p>
+                                    <img src = {movie.poster_url} alt={movie.title} />
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
                 <section className="all-movies">
-                    <h2> All Movies</h2>
+                    <h2 className="mt-[40px]"> All Movies</h2>
                     {loading ? (
-                        <p className="text-white">Loading...</p>
+                        <div className="text-white"><Spinner/></div>
                     ): errorMessage ? (
-                        <p className="text-red-500">{errorMessage}</p>
+                        <div className="text-red-500">{errorMessage}</div>
                     ):(
                         <ul>
                             {movieList.map((movie) => (
-                                <li key={movie.id} className="text-white">{movie.title}</li>
+                                <MovieCard  key={movie.id} movie={movie}/>
                             ))}
                         </ul>
                     )}
