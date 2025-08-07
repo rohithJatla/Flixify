@@ -3,6 +3,7 @@ import {useDebounce} from 'react-use';
 import Search from './components/Search.jsx'
 import Spinner from './components/Spinner.jsx';
 import MovieCard from "./components/MovieCard.jsx";
+import MovieDetails from './components/MovieDetails.jsx';
 import {getTrendingMovies, updateSearchCount} from "./appwrite.js";
 
 const API_BASE_URL = 'https://api.themoviedb.org/3'
@@ -25,9 +26,13 @@ const App = () => {
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [trendingMovies, setTrendingMovies] = useState([]);
 
-    // Pagination states
+
     const [currentPage, setCurrentPage] = useState(1);
-    const moviesPerPage = 8; // 4 columns x 2 rows as shown in your image
+    const moviesPerPage = 8;
+
+
+    const [selectedMovie, setSelectedMovie] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const scrollRef = useRef(null);
 
@@ -43,7 +48,6 @@ const App = () => {
         }
     };
 
-    // Calculate pagination
     const totalPages = Math.ceil(movieList.length / moviesPerPage);
     const startIndex = (currentPage - 1) * moviesPerPage;
     const currentMovies = useMemo(() =>
@@ -61,6 +65,16 @@ const App = () => {
 
     const goToPage = (page) => {
         setCurrentPage(page);
+    };
+
+    const handleMovieClick = (movie) => {
+        setSelectedMovie(movie);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedMovie(null);
     };
 
     const getVisiblePages = () => {
@@ -103,8 +117,8 @@ const App = () => {
 
     const fetchMovies = async (query = '') => {
         setLoading(true);
-        setErrorMessage(''); // Clear previous errors
-        setCurrentPage(1); // Reset to first page on new search
+        setErrorMessage('');
+        setCurrentPage(1);
 
         try{
             const endPoint =
@@ -164,6 +178,7 @@ const App = () => {
                     <section className="trending scroll-auto hide-scrollbar">
                         <h2>Trending Movies</h2>
                         <div className="trending__container">
+                            {/* Left scroll button */}
                             <button
                                 className="scroll-button scroll-button--left"
                                 onClick={scrollLeft}
@@ -181,6 +196,7 @@ const App = () => {
                                 ))}
                             </ul>
 
+                            {/* Right scroll button */}
                             <button
                                 className="scroll-button scroll-button--right"
                                 onClick={scrollRight}
@@ -202,7 +218,11 @@ const App = () => {
                         <>
                             <ul className="movie-grid">
                                 {currentMovies.map((movie) => (
-                                    <MovieCard key={movie.id} movie={movie}/>
+                                    <MovieCard
+                                        key={movie.id}
+                                        movie={movie}
+                                        onClick={handleMovieClick}
+                                    />
                                 ))}
                             </ul>
 
@@ -237,6 +257,7 @@ const App = () => {
                                         ))}
                                     </div>
 
+
                                     <button
                                         className="pagination__arrow pagination__arrow--right"
                                         onClick={goToNextPage}
@@ -246,14 +267,22 @@ const App = () => {
                                         &#8250;
                                     </button>
                                 </div>
-                                <div className="pagination__info">
-                                <span>{currentPage} / {totalPages}</span>
+                                    <div className="pagination__info">
+                                        <span>{currentPage} / {totalPages}</span>
                                     </div>
+
                                 </div>
                             )}
                         </>
                     )}
                 </section>
+
+                {/* Movie Details Modal */}
+                <MovieDetails
+                    movie={selectedMovie}
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                />
             </div>
         </main>
     )
