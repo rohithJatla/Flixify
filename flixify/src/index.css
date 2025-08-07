@@ -57,11 +57,18 @@
         @apply px-5 py-12 xs:p-10 max-w-7xl mx-auto flex flex-col relative z-10;
     }
 
+
     .trending {
         @apply mt-20;
 
+        & .trending__container {
+            @apply relative flex items-center;
+        }
+
         & ul {
             @apply flex flex-row overflow-y-auto gap-5 -mt-10 w-full hide-scrollbar;
+            padding: 0 3rem; /* Space for scroll buttons */
+            scroll-behavior: smooth;
         }
 
         & ul li {
@@ -75,7 +82,45 @@
         & ul li img {
             @apply w-[127px] h-[163px] rounded-lg object-cover -ml-3.5;
         }
+
+        & .scroll-button {
+            @apply absolute top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-none cursor-pointer z-10 transition-all duration-300 ease-in-out;
+            background: rgba(206, 206, 251, 0.1);
+            color: #cecefb;
+            font-size: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(206, 206, 251, 0.2);
+        }
+
+        & .scroll-button:hover {
+            background: rgba(206, 206, 251, 0.2);
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 0 20px rgba(206, 206, 251, 0.3);
+        }
+
+        & .scroll-button--left {
+            @apply left-2;
+        }
+
+        & .scroll-button--right {
+            @apply right-2;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            & .scroll-button {
+                @apply w-8 h-8;
+                font-size: 16px;
+            }
+
+            & ul {
+                padding: 0 2.5rem;
+            }
+        }
     }
+
 
     .search {
         @apply w-full bg-light-100/5 px-4 py-3 rounded-lg mt-10 max-w-3xl mx-auto;
@@ -96,8 +141,93 @@
     .all-movies {
         @apply space-y-9;
 
-        & ul {
+        & .movie-grid {
             @apply grid grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+        }
+    }
+
+    /* Add these new pagination styles to your @layer components */
+    .pagination {
+        @apply flex items-center justify-center gap-4 mt-8;
+    }
+
+    .pagination__arrow {
+        @apply w-10 h-10 rounded-full border-none cursor-pointer transition-all duration-300 ease-in-out;
+        background: rgba(206, 206, 251, 0.1);
+        color: #cecefb;
+        font-size: 18px;
+        font-weight: bold;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(206, 206, 251, 0.2);
+    }
+
+    .pagination__arrow:hover:not(:disabled) {
+        background: rgba(206, 206, 251, 0.2);
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(206, 206, 251, 0.3);
+    }
+
+    .pagination__arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .pagination__pages {
+        @apply flex items-center gap-2;
+    }
+
+    .pagination__page {
+        @apply w-8 h-8 rounded border-none cursor-pointer transition-all duration-300 ease-in-out text-sm font-medium;
+        background: transparent;
+        color: #a8b5db;
+        border: 1px solid rgba(168, 181, 219, 0.3);
+    }
+
+    .pagination__page:hover {
+        background: rgba(206, 206, 251, 0.1);
+        color: #cecefb;
+        border-color: rgba(206, 206, 251, 0.4);
+    }
+
+    .pagination__page--active {
+        background: rgba(206, 206, 251, 0.2);
+        color: #cecefb;
+        border-color: rgba(206, 206, 251, 0.5);
+        box-shadow: 0 0 10px rgba(206, 206, 251, 0.2);
+    }
+
+    .pagination__dots {
+        @apply text-gray-100 px-1;
+        color: #a8b5db;
+    }
+
+    .pagination__info {
+        @apply ml-2;
+        display: flex;
+        justify-content: center;
+        color: #a8b5db;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .pagination {
+            @apply gap-2;
+        }
+
+        .pagination__arrow {
+            @apply w-8 h-8;
+            font-size: 16px;
+        }
+
+        .pagination__page {
+            @apply w-7 h-7 text-xs;
+        }
+
+        .pagination__info {
+            font-size: 12px;
         }
     }
 
