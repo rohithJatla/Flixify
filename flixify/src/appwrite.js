@@ -1,20 +1,25 @@
-import {Client,Databases, Query,ID} from "appwrite";
+import { Client, Databases, Query, ID } from "appwrite";
 
 const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
 const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID;
 const ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT;
 
-const client = new Client()
-    .setEndpoint(ENDPOINT)
-    .setProject(PROJECT_ID);
+// Initialized at module scope so it is available to exported functions
+let database;
 
-const database = new Databases(client);
+try {
+  const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
+  database = new Databases(client);
+} catch (err) {
+  console.error("Appwrite init error", err);
+}
 
 
 export const updateSearchCount = async (searchTerm,movie) => {
 
     try{
+        if (!database) return;
         const result = await database.listDocuments(DATABASE_ID,COLLECTION_ID,[
             Query.equal('searchTerm', searchTerm),
         ])
@@ -43,14 +48,16 @@ export const updateSearchCount = async (searchTerm,movie) => {
 
 export const getTrendingMovies = async () => {
     try{
+        if (!database) return [];
         const result = await database.listDocuments(DATABASE_ID,COLLECTION_ID,
             [
                 Query.limit(10),
                 Query.orderDesc("count")
             ])
-        return result.documents;
+        return result.documents || [];
     }
     catch(e){
         console.error("AppWrite code error",e);
+        return [];
     }
 }
