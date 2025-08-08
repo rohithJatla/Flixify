@@ -41,14 +41,15 @@ sequenceDiagram
 ### App flow
 
 ```mermaid
+
 flowchart TD
     Start[App start] --> Init[useEffect: loadTrendingMovies]
     Init --> GetTrending[getTrendingMovies -> Appwrite]
     GetTrending --> TrendingState[setTrendingMovies]
     Start --> SearchInput[User types in Search]
     SearchInput --> Debounce[useDebounce 800ms]
-    Debounce --> Fetch[fetchMovies()]
-    Fetch --> TMDB[(TMDB API)]
+    Debounce --> Fetch[fetchMovies]
+    Fetch --> TMDB[TMDB API]
     TMDB --> Parse{response ok?}
     Parse -- no --> Err[setErrorMessage]
     Parse -- yes --> List[setMovieList]
@@ -61,6 +62,7 @@ flowchart TD
     Modal --> DetailsFetch[fetch details from VITE_API_BASE_URL]
     DetailsFetch --> Display[Render details/trailer]
     Display --> Close[Close modal]
+
 ```
 
 ---
